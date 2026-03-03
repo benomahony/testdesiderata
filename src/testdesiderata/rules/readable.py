@@ -4,7 +4,7 @@ import re
 from testdesiderata.models import Violation
 from testdesiderata.rules.base import test_functions
 
-_SHORT_NAME_PATTERN = r"^test_?\w{0,5}$"
+_SHORT_NAME_PATTERN = r"^test_[^_]{1,8}$"
 MIN_COMPLEX_LINES = 20
 
 

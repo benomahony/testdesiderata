@@ -502,6 +502,17 @@ def test_rdl001_descriptive_name_is_clean():
     assert ids == []
 
 
+def test_rdl001_multiword_short_name_is_clean():
+    ids = violations_for(
+        ReadableRule(),
+        """
+        def test_add_two():
+            assert 1 + 1 == 2
+    """,
+    )
+    assert "RDL001" not in ids
+
+
 def test_clean_test_has_no_violations():
     linter = Linter()
     violations = linter.lint_tree(
