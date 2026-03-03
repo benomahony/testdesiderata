@@ -306,3 +306,84 @@ def test_something():
 Without `strict=True`, an xfail test that starts passing is marked `XPASS` and the suite still exits `0`.
 
 ---
+
+## Composable (CMP)
+
+Tests should be small enough to combine and reuse.
+
+### CMP001 — too many assertions
+
+```python
+# bad — 12 assertions in one test
+def test_something():
+    assert a == 1
+    assert b == 2
+    # ... 10 more
+```
+
+More than 10 assertions usually means the test covers multiple concerns. Split by behavior.
+
+### CMP002 — test body too long
+
+```python
+# bad — 60-line test function
+def test_checkout_flow():
+    # ... 60 lines of setup, actions, assertions
+```
+
+Tests longer than 50 lines are hard to read and often test too much. Extract helpers or fixtures.
+
+---
+
+## Readable (RDL)
+
+Tests should be easy to read and understand.
+
+### RDL001 — non-descriptive name
+
+```python
+# bad
+def test_foo():       # RDL001 — single word, ≤8 chars
+def test_method():    # RDL001
+
+# ok
+def test_add_two():
+def test_user_can_log_in_with_valid_credentials():
+```
+
+A test name should read like a sentence describing the expected behavior. Single-word names up to 8 characters are flagged.
+
+### RDL002 — complex test without docstring
+
+```python
+# bad — 25 lines, no docstring
+def test_something_complex():
+    # ... 25 lines
+
+# ok
+def test_something_complex():
+    """Verifies the edge case when X and Y both apply."""
+    # ... 25 lines
+```
+
+Tests longer than 20 lines without a docstring are flagged.
+
+---
+
+## Writable (WRT) — AI only
+
+*Requires `--ai` and `testdesiderata[ai]`.*
+
+### WRT001 — high maintenance cost
+
+Raised when the AI reviewer determines that a test's boilerplate cost outweighs its assertion value, or that obvious patterns could reduce duplication.
+
+---
+
+## Inspiring (INS) — AI only
+
+*Requires `--ai` and `testdesiderata[ai]`.*
+
+### INS001 — weak or incomplete assertions
+
+Raised when the AI reviewer determines that assertions are weak relative to the test name, or that obvious edge cases are missing.
