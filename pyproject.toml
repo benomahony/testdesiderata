@@ -7,13 +7,13 @@ authors = [
     { name = "benomahony", email = "bomarni@googlemail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = ["typer>=0.12", "rich>=13", "pydantic>=2"]
+dependencies = ["typer>=0.12", "rich>=13"]
 
 [project.scripts]
 testdesiderata = "testdesiderata.cli:app"
 
 [project.optional-dependencies]
-ai = ["pydantic-ai[anthropic]>=0.1"]
+ai = ["pydantic-ai[anthropic]>=0.1", "pydantic>=2"]
 mcp = ["mcp>=1.0"]
 
 [dependency-groups]
