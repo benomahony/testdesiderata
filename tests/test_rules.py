@@ -181,17 +181,31 @@ def test_fst001_sleep():
     assert ids == ["FST001"]
 
 
-def test_fst002_nested_loops():
+def test_fst002_polling_loop():
+    ids = violations_for(
+        FastRule(),
+        """
+        import time
+        def test_something():
+            for _ in range(10):
+                time.sleep(0.1)
+            assert True
+    """,
+    )
+    assert "FST002" in ids
+
+
+def test_fst002_nested_loop_without_sleep_is_clean():
     ids = violations_for(
         FastRule(),
         """
         def test_something():
-            for i in range(10):
-                for j in range(10):
+            for i in range(3):
+                for j in range(3):
                     assert i != j or True
     """,
     )
-    assert ids == ["FST002"]
+    assert "FST002" not in ids
 
 
 def test_aut001_input_call():

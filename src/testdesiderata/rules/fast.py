@@ -18,10 +18,14 @@ def _is_sleep_call(node: ast.Call) -> bool:
     return is_attr or is_name
 
 
-def _has_nested_for(stmts: list[ast.stmt]) -> bool:
-    assert stmts is not None, "Statement list must not be None"
-    assert isinstance(stmts, list), "Statements must be a list"
-    return any(isinstance(s, (ast.For, ast.AsyncFor)) for s in stmts)
+def _loop_contains_sleep(body: list[ast.stmt]) -> bool:
+    assert body is not None, "Body must not be None"
+    assert isinstance(body, list), "Body must be a list"
+    return any(
+        isinstance(n, ast.Call) and _is_sleep_call(n)
+        for stmt in body
+        for n in ast.walk(stmt)
+    )
 
 
 class FastRule:
@@ -45,9 +49,9 @@ class FastRule:
                             "time.sleep() in tests slows down the suite",
                         )
                     )
-                elif isinstance(node, (ast.For, ast.AsyncFor)) and _has_nested_for(
-                    node.body
-                ):
+                elif isinstance(
+                    node, (ast.For, ast.AsyncFor, ast.While)
+                ) and _loop_contains_sleep(node.body):
                     violations.append(
                         Violation(
                             filename,
@@ -55,7 +59,7 @@ class FastRule:
                             node.col_offset,
                             "FST002",
                             "Fast",
-                            "nested loops in tests suggest O(n²) work; extract to fixtures or parametrize",
+                            "polling loop with sleep() — use events or callbacks instead of busy-waiting",
                         )
                     )
         return violations
