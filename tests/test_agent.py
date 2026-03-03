@@ -2,6 +2,8 @@ import asyncio
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
 try:
     from pydantic_ai import Agent
     from pydantic_ai.models.test import TestModel

@@ -16,6 +16,8 @@ from testdesiderata.rules.readable import ReadableRule
 from testdesiderata.rules.specific import SpecificRule
 from testdesiderata.rules.structure_insensitive import StructureInsensitiveRule
 
+pytestmark = pytest.mark.unit
+
 
 def parse(source: str) -> ast.AST:
     return ast.parse(textwrap.dedent(source))

@@ -2,12 +2,16 @@ import ast
 import textwrap
 from pathlib import Path
 
+import pytest
+
 from testdesiderata.timing import (
     SlowTestRule,
     find_junit_xml,
     load_junit_timings,
     path_to_classname,
 )
+
+pytestmark = pytest.mark.unit
 
 _JUNIT_XML = """\
 <?xml version="1.0" encoding="utf-8"?>

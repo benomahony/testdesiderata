@@ -34,7 +34,7 @@ jobs:
         run: uv run pytest -m unit -n auto --cov=src/testdesiderata --cov-report=term-missing
 
       - name: Run integration tests (sequential)
-        run: uv run pytest -m integration --cov=src/testdesiderata --cov-append --cov-report=term-missing
+        run: uv run pytest -m integration --cov=src/testdesiderata --cov-append --cov-report=term-missing || [ $? -eq 5 ]
 
   publish:
     needs: test

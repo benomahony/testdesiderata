@@ -17,7 +17,24 @@ ai = ["pydantic-ai[anthropic]>=0.1", "pydantic>=2"]
 mcp = ["mcp>=1.0"]
 
 [dependency-groups]
-dev = ["pytest>=8", "basedpyright>=1.18", "ruff>=0.8", "vulture>=2.14", "bandit>=1.8", "deptry>=0.23", "cliqa>=0.1", "prek>=0.1"]
+dev = [
+    "pytest>=8",
+    "basedpyright>=1.18",
+    "ruff>=0.8",
+    "vulture>=2.14",
+    "bandit>=1.8",
+    "deptry>=0.23",
+    "cliqa>=0.1",
+    "prek>=0.1",
+    "pytest-xdist>=3",
+    "pytest-cov>=5",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "unit: fast isolated tests using AST parsing only",
+    "integration: tests that invoke the CLI or external processes",
+]
 
 [tool.bandit]
 skips = ["B101", "B405", "B313", "B314"]

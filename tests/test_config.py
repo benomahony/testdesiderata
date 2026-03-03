@@ -1,6 +1,10 @@
 from pathlib import Path
 
+import pytest
+
 from testdesiderata.config import config_to_csv, load_config
+
+pytestmark = pytest.mark.unit
 
 
 def test_load_config_returns_empty_when_not_found(tmp_path: Path):
