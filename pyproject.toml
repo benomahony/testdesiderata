@@ -28,6 +28,8 @@ dev = [
     "prek>=0.1",
     "pytest-xdist>=3",
     "pytest-cov>=5",
+    "bump-my-version>=1.2.7",
+    "zensical>=0.0.24",
 ]
 
 [tool.pytest.ini_options]
