@@ -6,6 +6,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from testdesiderata.config import config_to_csv, load_config
 from testdesiderata.linter import Linter
 from testdesiderata.models import Rule, Violation
 from testdesiderata.rules import ALL_RULES
@@ -138,7 +139,10 @@ def main(
 ) -> None:
     assert paths, "At least one path must be provided"
     assert ALL_RULES, "Rule registry must not be empty"
-    rules = _build_rules(ALL_RULES, select, ignore, junit, slow)
+    cfg = load_config(Path.cwd())
+    effective_select = select or config_to_csv(cfg, "select")
+    effective_ignore = ignore or config_to_csv(cfg, "ignore")
+    rules = _build_rules(ALL_RULES, effective_select, effective_ignore, junit, slow)
     linter = Linter(rules=rules)
     violations: list[Violation] = []
     for path in paths:
