@@ -116,3 +116,93 @@ def test_something():
 Detects `sqlite3.connect()`, `psycopg2.connect()`, `pymysql.connect()`, `asyncpg.connect()`, `asyncpg.create_pool()`, `create_engine()`, `MongoClient()`. Use in-memory databases or test containers with proper setup/teardown.
 
 ---
+
+## Fast (FST)
+
+Tests should run in milliseconds.
+
+### FST001 — sleep
+
+```python
+# bad
+def test_something():
+    time.sleep(0.1)   # FST001
+```
+
+Detects `time.sleep()` or bare `sleep()`. Use event primitives (`threading.Event`, `asyncio.Event`) instead.
+
+### FST002 — polling loop with sleep
+
+```python
+# bad
+def test_something():
+    for _ in range(10):
+        time.sleep(0.1)   # FST002
+```
+
+Detects for/while loops that contain a `sleep()` call. Replace busy-waiting with callbacks or condition variables.
+
+### FST003 — slow test (timing data required)
+
+```
+tests/test_payment.py::test_checkout_flow took 2.34s (threshold: 1.0s)
+```
+
+Raised when a test's recorded runtime exceeds `--slow` (default `1.0s`). Requires JUnit XML; auto-detected from `report.xml`, `junit.xml`, `test-results.xml`, or `pytest-results.xml`.
+
+---
+
+## Automated (AUT)
+
+Tests should run without human intervention.
+
+### AUT001 — interactive input
+
+```python
+# bad
+def test_something():
+    name = input("enter name: ")   # AUT001
+    breakpoint()                   # AUT001
+```
+
+Detects `input()` and `breakpoint()`.
+
+### AUT002 — debugger call
+
+```python
+# bad
+def test_something():
+    pdb.set_trace()   # AUT002
+```
+
+Detects `pdb.set_trace()`, `pdb.post_mortem()`, `pdb.pm()`, and equivalents from `ipdb` and `pudb`.
+
+---
+
+## Behavioral (BHV)
+
+Tests should test observable behavior, not implementation details.
+
+### BHV001 — mock creation
+
+```python
+# bad
+def test_something():
+    m = MagicMock()   # BHV001
+    m.method.return_value = 42
+```
+
+Detects `Mock()`, `MagicMock()`, `AsyncMock()`, `NonCallableMock()`, `NonCallableMagicMock()`. Replace with real implementations or simple fakes.
+
+### BHV002 — patch decorator
+
+```python
+# bad
+@patch("mymodule.MyClass")   # BHV002
+def test_something(mock_cls):
+    ...
+```
+
+Detects `@patch`, `@mock.patch`, `@unittest.mock.patch`, `@unittest.mock.object`. Use dependency injection so the real implementation can be swapped without patching.
+
+---
