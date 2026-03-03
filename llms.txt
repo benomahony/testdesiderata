@@ -1,0 +1,20 @@
+# testdesiderata
+
+> Add your description here
+
+## Documentation
+
+- [Installation](docs/index.md#installation): Install testdesiderata using pip or uv
+- [Usage](docs/index.md#usage): Learn how to use testdesiderata as a library or CLI tool
+- [Development](docs/index.md#development): Set up a development environment and run tests
+
+## Project Information
+
+- **Source Code**: https://github.com/benomahony/testdesiderata
+- **PyPI Package**: https://pypi.org/project/testdesiderata
+- **Documentation**: https://benomahony.github.io/testdesiderata
+
+## AI Integration
+
+- **MCP Server**: Model Context Protocol server available at `src/testdesiderata/mcp_server.py` for AI-powered documentation access
+- **Agent Skill**: Claude Code skill available in `.skills/testdesiderata/SKILL.md` for enhanced project interaction

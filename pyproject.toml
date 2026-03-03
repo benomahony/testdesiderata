@@ -1,0 +1,31 @@
+[project]
+name = "testdesiderata"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "benomahony", email = "bomarni@googlemail.com" }
+]
+requires-python = ">=3.12"
+dependencies = ["typer>=0.12", "rich>=13", "pydantic>=2"]
+
+[project.scripts]
+testdesiderata = "testdesiderata.cli:app"
+
+[project.optional-dependencies]
+ai = ["pydantic-ai[anthropic]>=0.1"]
+mcp = ["mcp>=1.0"]
+
+[dependency-groups]
+dev = ["pytest>=8", "basedpyright>=1.18", "ruff>=0.8", "vulture>=2.14", "bandit>=1.8", "deptry>=0.23", "cliqa>=0.1", "prek>=0.1"]
+
+[tool.bandit]
+skips = ["B101", "B405", "B313", "B314"]
+
+[tool.deptry]
+known_first_party = ["testdesiderata"]
+per_rule_ignores = {"DEP003" = ["mcp"]}
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
