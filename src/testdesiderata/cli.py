@@ -49,9 +49,8 @@ def _collect_ai_violations(paths: list[Path]) -> list[Violation]:
 
     try:
         from testdesiderata.agent import review_file as _ai_review
-    except ImportError:
-        console.print("[red]Install AI deps: pip install 'testdesiderata[ai]'[/red]")
-        raise typer.Exit(1)
+    except ImportError as e:
+        raise ImportError("Install AI deps: pip install 'testdesiderata[ai]'") from e
     all_files = [
         p
         for root in paths
@@ -74,7 +73,7 @@ def _collect_ai_violations(paths: list[Path]) -> list[Violation]:
         return asyncio.run(_run())
 
 
-def _print_report(violations: list[Violation]) -> None:
+def _display_violations(violations: list[Violation]) -> None:
     assert violations is not None, "Violations must not be None"
     assert isinstance(violations, list), "Violations must be a list"
     by_file: dict[str, list[Violation]] = defaultdict(list)
@@ -108,7 +107,6 @@ def _print_report(violations: list[Violation]) -> None:
         table.add_row(desid, str(len(rule_ids)), ", ".join(sorted(set(rule_ids))))
     console.print(table)
     console.print()
-    raise typer.Exit(1)
 
 
 @app.command()
@@ -146,5 +144,11 @@ def main(
     for path in paths:
         violations.extend(linter.lint_path(path))
     if ai:
-        violations.extend(_collect_ai_violations(paths))
-    _print_report(violations)
+        try:
+            violations.extend(_collect_ai_violations(paths))
+        except ImportError as e:
+            console.print(f"[red]{e}[/red]")
+            raise typer.Exit(1)
+    _display_violations(violations)
+    if violations:
+        raise typer.Exit(1)
