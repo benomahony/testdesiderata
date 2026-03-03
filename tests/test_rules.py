@@ -469,6 +469,58 @@ def test_cmp001_too_many_assertions():
     assert ids == ["CMP001"]
 
 
+def test_cmp001_under_limit_is_clean():
+    assert_lines = "\n    ".join(f"assert x > {i}" for i in range(9))
+    source = f"def test_something():\n    x = 100\n    {assert_lines}"
+    ids = violations_for(ComposableRule(), source)
+    assert "CMP001" not in ids
+
+
+def test_cmp002_body_too_long():
+    body = "    x = 1\n" * 55
+    source = f"def test_long_body():\n{body}"
+    ids = violations_for(ComposableRule(), source)
+    assert "CMP002" in ids
+
+
+def test_rdl002_complex_without_docstring():
+    body = "    x = 1\n" * 25
+    source = f"def test_something_complex():\n{body}"
+    ids = violations_for(ReadableRule(), source)
+    assert "RDL002" in ids
+
+
+def test_rdl002_complex_with_docstring_is_clean():
+    body = "    x = 1\n" * 25
+    source = f'def test_something_complex():\n    """Verifies the complex scenario."""\n{body}'
+    ids = violations_for(ReadableRule(), source)
+    assert "RDL002" not in ids
+
+
+def test_fst001_no_sleep_is_clean():
+    ids = violations_for(
+        FastRule(),
+        """
+        def test_something():
+            result = 1 + 1
+            assert result == 2
+    """,
+    )
+    assert "FST001" not in ids
+
+
+def test_iso003_no_file_io_is_clean():
+    ids = violations_for(
+        IsolatedRule(),
+        """
+        def test_something():
+            result = 1 + 1
+            assert result == 2
+    """,
+    )
+    assert "ISO003" not in ids
+
+
 def test_rdl001_non_descriptive_name():
     ids = violations_for(
         ReadableRule(),
