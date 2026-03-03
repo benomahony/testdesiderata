@@ -1,9 +1,6 @@
 import ast
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol, override
-
-if TYPE_CHECKING:
-    pass
+from typing import Protocol, override
 
 
 class Rule(Protocol):
