@@ -37,7 +37,7 @@ def load_junit_timings(xml_path: Path) -> dict[str, float]:
     return timings
 
 
-def _path_to_classname(filename: str) -> str:
+def path_to_classname(filename: str) -> str:
     assert filename, "Filename must not be empty"
     assert isinstance(filename, str), "Filename must be a string"
     return str(Path(filename).with_suffix("")).replace("/", ".").replace("\\", ".")
@@ -58,7 +58,7 @@ class SlowTestRule:
     def check(self, tree: ast.AST, filename: str) -> list[Violation]:
         assert tree is not None, "AST tree must not be None"
         assert filename, "Filename must not be empty"
-        classname = _path_to_classname(filename)
+        classname = path_to_classname(filename)
         violations: list[Violation] = []
         for func in test_functions(tree):
             duration = self.timing_data.get(

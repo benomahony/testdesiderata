@@ -2,13 +2,11 @@ import ast
 import textwrap
 from pathlib import Path
 
-import pytest
-
 from testdesiderata.timing import (
     SlowTestRule,
-    _path_to_classname,
     find_junit_xml,
     load_junit_timings,
+    path_to_classname,
 )
 
 _JUNIT_XML = """\
@@ -25,15 +23,15 @@ _JUNIT_XML = """\
 
 def test_load_junit_timings(tmp_path: Path):
     xml = tmp_path / "report.xml"
-    xml.write_text(_JUNIT_XML)
+    _ = xml.write_text(_JUNIT_XML)
     timings = load_junit_timings(xml)
-    assert timings["tests.test_foo::test_fast"] == pytest.approx(0.02)
-    assert timings["tests.test_foo::test_slow"] == pytest.approx(2.50)
-    assert timings["tests.test_bar::test_medium"] == pytest.approx(0.80)
+    assert timings["tests.test_foo::test_fast"] == 0.02
+    assert timings["tests.test_foo::test_slow"] == 2.50
+    assert timings["tests.test_bar::test_medium"] == 0.80
 
 
 def test_find_junit_xml_detects_report(tmp_path: Path):
-    (tmp_path / "report.xml").write_text(_JUNIT_XML)
+    _ = (tmp_path / "report.xml").write_text(_JUNIT_XML)
     found = find_junit_xml(tmp_path)
     assert found == tmp_path / "report.xml"
 
@@ -44,8 +42,8 @@ def test_find_junit_xml_returns_none_when_absent(tmp_path: Path):
 
 
 def test_path_to_classname():
-    assert _path_to_classname("tests/test_foo.py") == "tests.test_foo"
-    assert _path_to_classname("test_bar.py") == "test_bar"
+    assert path_to_classname("tests/test_foo.py") == "tests.test_foo"
+    assert path_to_classname("test_bar.py") == "test_bar"
 
 
 def test_slow_test_rule_flags_exceeding_threshold():

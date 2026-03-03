@@ -19,11 +19,11 @@ class _SubjectiveViolation(BaseModel):
     message: str
 
 
-class _Review(BaseModel):
+class Review(BaseModel):
     violations: list[_SubjectiveViolation]
 
 
-_SYSTEM = """You are a test quality reviewer evaluating Python test functions against Kent Beck's Test Desiderata.
+SYSTEM_PROMPT = """You are a test quality reviewer evaluating Python test functions against Kent Beck's Test Desiderata.
 
 Evaluate each test for exactly two properties:
 
@@ -39,22 +39,22 @@ For each issue set `desideratum` to exactly "Writable" or "Inspiring" and write 
 actionable message. Return an empty violations list for reasonable tests."""
 
 
-def _default_agent() -> Agent[None, _Review]:
-    assert _SYSTEM, "System prompt must not be empty"
-    assert _Review is not None, "_Review model must be defined"
+def _default_agent() -> Agent[None, Review]:
+    assert SYSTEM_PROMPT, "System prompt must not be empty"
+    assert Review is not None, "Review model must be defined"
     from pydantic_ai import Agent
 
     return Agent(
-        "anthropic:claude-sonnet-4-6", output_type=_Review, system_prompt=_SYSTEM
+        "anthropic:claude-sonnet-4-6", output_type=Review, system_prompt=SYSTEM_PROMPT
     )
 
 
-async def _review_function(
+async def review_function(
     source: str,
     filename: str,
     lineno: int,
     *,
-    agent: Agent[None, _Review] | None = None,
+    agent: Agent[None, Review] | None = None,
 ) -> list[Violation]:
     assert source, "Source must not be empty"
     assert filename, "Filename must not be empty"
@@ -71,7 +71,7 @@ async def _review_function(
 
 
 async def review_file(
-    path: Path, *, agent: Agent[None, _Review] | None = None
+    path: Path, *, agent: Agent[None, Review] | None = None
 ) -> list[Violation]:
     assert path is not None, "Path must not be None"
     assert path.exists(), f"File must exist: {path}"
@@ -80,7 +80,7 @@ async def review_file(
     source = path.read_text()
     tree = ast.parse(source, filename=str(path))
     tasks = [
-        _review_function(
+        review_function(
             ast.get_source_segment(source, func) or "",
             str(path),
             func.lineno,
