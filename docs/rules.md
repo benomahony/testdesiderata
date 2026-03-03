@@ -57,3 +57,62 @@ def test_something():
 ```
 
 ---
+
+## Isolated (ISO)
+
+Tests should not share state with other tests or depend on the environment.
+
+### ISO001 — global state mutation
+
+```python
+# bad
+counter = 0
+def test_increments():
+    global counter   # ISO001
+    counter += 1
+```
+
+Detects `global` statements inside test functions.
+
+### ISO002 — environment mutation
+
+```python
+# bad
+def test_something():
+    os.environ["KEY"] = "value"   # ISO002
+```
+
+Detects `os.environ` subscript assignment, `.update()`, `.pop()`, `.clear()`, `.setdefault()`, and `sys.path` mutations (`.append()`, `.insert()`, `.remove()`). Use `monkeypatch` fixture or dependency injection instead.
+
+### ISO003 — file I/O
+
+```python
+# bad
+def test_something():
+    with open("data.txt") as f:   # ISO003
+        data = f.read()
+```
+
+Detects `open()`, `Path.read_text()`, `Path.read_bytes()`, `Path.write_text()`, `Path.write_bytes()`. Use `tmp_path` fixture or in-memory alternatives.
+
+### ISO004 — network call
+
+```python
+# bad
+def test_something():
+    r = requests.get("https://api.example.com")   # ISO004
+```
+
+Detects `requests.*`, `httpx.*`, `aiohttp.ClientSession`, `urllib.urlopen`. Use a real test server or dependency injection.
+
+### ISO005 — database connection
+
+```python
+# bad
+def test_something():
+    conn = sqlite3.connect(":memory:")   # ISO005
+```
+
+Detects `sqlite3.connect()`, `psycopg2.connect()`, `pymysql.connect()`, `asyncpg.connect()`, `asyncpg.create_pool()`, `create_engine()`, `MongoClient()`. Use in-memory databases or test containers with proper setup/teardown.
+
+---
