@@ -9,7 +9,7 @@ def test_load_config_returns_empty_when_not_found(tmp_path: Path):
 
 
 def test_load_config_reads_testdesiderata_section(tmp_path: Path):
-    (tmp_path / "pyproject.toml").write_text(
+    _ = (tmp_path / "pyproject.toml").write_text(
         '[tool.testdesiderata]\nselect = ["DET"]\n'
     )
     result = load_config(tmp_path)
@@ -17,7 +17,7 @@ def test_load_config_reads_testdesiderata_section(tmp_path: Path):
 
 
 def test_load_config_returns_empty_for_missing_section(tmp_path: Path):
-    (tmp_path / "pyproject.toml").write_text("[tool.ruff]\n")
+    _ = (tmp_path / "pyproject.toml").write_text("[tool.ruff]\n")
     result = load_config(tmp_path)
     assert result == {}
 

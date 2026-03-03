@@ -4,6 +4,7 @@ import textwrap
 import pytest
 
 from testdesiderata.linter import Linter
+from testdesiderata.models import Rule
 from testdesiderata.rules.automated import AutomatedRule
 from testdesiderata.rules.behavioral import BehavioralRule
 from testdesiderata.rules.composable import ComposableRule
@@ -20,7 +21,7 @@ def parse(source: str) -> ast.AST:
     return ast.parse(textwrap.dedent(source))
 
 
-def violations_for(rule, source: str) -> list[str]:
+def violations_for(rule: Rule, source: str) -> list[str]:
     return [v.rule_id for v in rule.check(parse(source), "test_example.py")]
 
 
