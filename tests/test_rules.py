@@ -345,28 +345,17 @@ def test_str006_assert_has_calls():
     assert ids == ["STR006"]
 
 
-def test_str007_call_count():
+def test_str_call_count_attribute_not_flagged():
     ids = violations_for(
         StructureInsensitiveRule(),
         """
         def test_something():
-            mock = object()
-            assert mock.call_count == 1
+            counter = object()
+            assert counter.call_count == 1
     """,
     )
-    assert ids == ["STR007"]
-
-
-def test_str008_call_args():
-    ids = violations_for(
-        StructureInsensitiveRule(),
-        """
-        def test_something():
-            mock = object()
-            assert mock.call_args == ((1,), {})
-    """,
-    )
-    assert ids == ["STR008"]
+    assert "STR007" not in ids
+    assert "STR008" not in ids
 
 
 def test_spc001_bare_except():

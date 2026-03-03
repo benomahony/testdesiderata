@@ -12,12 +12,6 @@ _MOCK_ASSERT_RULES: dict[str, str] = {
     "assert_has_calls": "STR006",
 }
 
-_CALL_ATTR_RULES: dict[str, str] = {
-    "call_count": "STR007",
-    "call_args": "STR008",
-    "call_args_list": "STR008",
-}
-
 
 class StructureInsensitiveRule:
     rule_id: str = "STR"
@@ -40,19 +34,6 @@ class StructureInsensitiveRule:
                                 rule_id,
                                 "Structure-insensitive",
                                 f".{node.func.attr}() asserts call structure, not observable behavior",
-                            )
-                        )
-                elif isinstance(node, ast.Attribute):
-                    rule_id = _CALL_ATTR_RULES.get(node.attr)
-                    if rule_id:
-                        violations.append(
-                            Violation(
-                                filename,
-                                node.lineno,
-                                node.col_offset,
-                                rule_id,
-                                "Structure-insensitive",
-                                f".{node.attr} inspects call structure, not observable behavior",
                             )
                         )
         return violations
