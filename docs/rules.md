@@ -206,3 +206,103 @@ def test_something(mock_cls):
 Detects `@patch`, `@mock.patch`, `@unittest.mock.patch`, `@unittest.mock.object`. Use dependency injection so the real implementation can be swapped without patching.
 
 ---
+
+## Structure-insensitive (STR)
+
+Tests should remain valid across refactors that preserve behavior.
+
+### STR001–STR006 — mock assertion methods
+
+```python
+# bad
+def test_something():
+    mock.assert_called_with(1, 2)       # STR001
+    mock.assert_called_once_with(1, 2)  # STR002
+    mock.assert_called_once()           # STR003
+    mock.assert_not_called()            # STR004
+    mock.assert_any_call(1)             # STR005
+    mock.assert_has_calls([])           # STR006
+```
+
+These assert how a function was called, not what the system produced. Test return values and side effects instead.
+
+---
+
+## Specific (SPC)
+
+Tests should pinpoint exactly what went wrong.
+
+### SPC001 — broad exception handler
+
+```python
+# bad
+def test_something():
+    try:
+        do_thing()
+    except:           # SPC001 (bare)
+        pass
+    except Exception: # SPC001 (too broad)
+        pass
+```
+
+Use specific exception types: `except ValueError`, `except ConnectionError`, etc.
+
+### SPC002 — compound assert without message
+
+```python
+# bad
+def test_something():
+    assert x > 0 and y > 0   # SPC002
+
+# ok
+def test_something():
+    assert x > 0 and y > 0, "both x and y must be positive"
+```
+
+When a compound assertion fails, the default message (`assert False`) doesn't say which condition failed. Add a message, or split into separate assertions.
+
+---
+
+## Predictive (PRD)
+
+Tests should predict the failure mode before writing the code.
+
+### PRD001 — pytest.skip in body
+
+```python
+# bad
+def test_something():
+    pytest.skip("not ready")   # PRD001
+    assert True
+```
+
+Unconditionally skipped tests are dead coverage. Delete them or implement them.
+
+### PRD002 — @pytest.mark.skip
+
+```python
+# bad
+@pytest.mark.skip   # PRD002
+def test_something():
+    assert True
+```
+
+Same as PRD001 — skipped tests mask coverage gaps.
+
+### PRD003 — xfail without strict
+
+```python
+# bad
+@pytest.mark.xfail        # PRD003 — silently passes on unexpected success
+def test_something():
+    assert False
+
+# ok
+@pytest.mark.xfail(strict=True)   # fails loudly if the test unexpectedly passes
+def test_something():
+    assert False
+```
+
+Without `strict=True`, an xfail test that starts passing is marked `XPASS` and the suite still exits `0`.
+
+---
