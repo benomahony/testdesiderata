@@ -14,7 +14,7 @@ testdesiderata = "testdesiderata.cli:app"
 tdr = "testdesiderata.cli:app"
 
 [project.optional-dependencies]
-ai = ["pydantic-ai[anthropic]>=0.1", "pydantic>=2"]
+ai = ["pydantic-ai>=0.1", "pydantic>=2"]
 mcp = ["mcp>=1.0"]
 
 [dependency-groups]
@@ -51,6 +51,8 @@ current_version = "0.1.1"
 commit = true
 tag = true
 tag_name = "v{new_version}"
+message = "Bump version: {current_version} → {new_version}"
+pre_commit_hooks = ["uv lock", "git add uv.lock"]
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
