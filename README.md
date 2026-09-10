@@ -46,13 +46,13 @@ CLI flags override config. Config is found by walking up from the working direct
 
 | Prefix | Desideratum | What it catches |
 |--------|-------------|-----------------|
-| `DET` | Deterministic | `random`, `datetime.now`, `uuid4`, `os.urandom` |
-| `ISO` | Isolated | `global`, env mutation, file I/O, network, DB connections |
+| `DET` | Deterministic | `random`, `datetime.now`, `uuid4`, `os.urandom`, `numpy.random` |
+| `ISO` | Isolated | `global`, env mutation, file I/O, network, DB connections, `tempfile`, `shutil`, `subprocess` |
 | `FST` | Fast | `time.sleep`, polling loops |
 | `AUT` | Automated | `input()`, `breakpoint()`, `pdb.set_trace()` |
-| `BHV` | Behavioral | `Mock`/`MagicMock`, `@patch` |
+| `BHV` | Behavioral | `Mock`/`MagicMock`, `@patch`, `mocker.spy`, `autospec=False` |
 | `STR` | Structure-insensitive | `.assert_called_with()` and related mock methods |
-| `SPC` | Specific | bare/broad `except`, compound assert without message |
+| `SPC` | Specific | bare/broad `except`, compound assert without message, `raises(Exception)` |
 | `PRD` | Predictive | `pytest.skip`, `@mark.skip`, `@mark.xfail` without `strict=True` |
 | `CMP` | Composable | >10 assertions or >50 lines per test |
 | `RDL` | Readable | non-descriptive names, long tests without docstrings |

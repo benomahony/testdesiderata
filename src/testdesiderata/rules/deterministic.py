@@ -16,6 +16,18 @@ _RANDOM_ATTRS = {
 _TIME_ATTRS = {"time", "monotonic", "perf_counter", "process_time", "time_ns"}
 _UUID_ATTRS = {"uuid1", "uuid4"}
 _DATETIME_ATTRS = {"now", "today", "utcnow"}
+_NUMPY_RANDOM_ATTRS = {
+    "rand",
+    "randn",
+    "randint",
+    "random",
+    "choice",
+    "shuffle",
+    "sample",
+    "uniform",
+    "normal",
+    "permutation",
+}
 
 
 def _attr_call(node: ast.Call, module: str, attrs: set[str]) -> bool:
@@ -44,6 +56,15 @@ def _nested_attr_call(node: ast.Call, outer: str, inner: str, attrs: set[str]) -
     )
 
 
+def _numpy_random_prefix(node: ast.Call) -> str | None:
+    assert node is not None, "Call node must not be None"
+    assert isinstance(node, ast.Call), "Node must be an ast.Call"
+    for outer in ("numpy", "np"):
+        if _nested_attr_call(node, outer, "random", _NUMPY_RANDOM_ATTRS):
+            return outer
+    return None
+
+
 class DeterministicRule:
     rule_id: str = "DET"
     desideratum: str = "Deterministic"
@@ -64,53 +85,49 @@ class DeterministicRule:
         assert node is not None, "Call node must not be None"
         assert filename, "Filename must not be empty"
         attr = node.func.attr if isinstance(node.func, ast.Attribute) else None
-        if _attr_call(node, "random", _RANDOM_ATTRS):
-            return Violation(
-                filename,
-                node.lineno,
-                node.col_offset,
+        numpy_prefix = _numpy_random_prefix(node)
+        matches: list[tuple[bool, str, str]] = [
+            (
+                _attr_call(node, "random", _RANDOM_ATTRS),
                 "DET001",
-                "Deterministic",
                 f"random.{attr}() produces non-deterministic results",
-            )
-        if _attr_call(node, "time", _TIME_ATTRS) or _nested_attr_call(
-            node, "time", "time", _TIME_ATTRS
-        ):
-            return Violation(
-                filename,
-                node.lineno,
-                node.col_offset,
+            ),
+            (
+                _attr_call(node, "time", _TIME_ATTRS)
+                or _nested_attr_call(node, "time", "time", _TIME_ATTRS),
                 "DET003",
-                "Deterministic",
                 f"time.{attr}() returns a non-deterministic value",
-            )
-        if _attr_call(node, "datetime", _DATETIME_ATTRS) or _nested_attr_call(
-            node, "datetime", "datetime", _DATETIME_ATTRS
-        ):
-            return Violation(
-                filename,
-                node.lineno,
-                node.col_offset,
+            ),
+            (
+                _attr_call(node, "datetime", _DATETIME_ATTRS)
+                or _nested_attr_call(node, "datetime", "datetime", _DATETIME_ATTRS),
                 "DET002",
-                "Deterministic",
                 f"datetime.{attr}() returns the non-deterministic current time",
-            )
-        if _attr_call(node, "uuid", _UUID_ATTRS):
-            return Violation(
-                filename,
-                node.lineno,
-                node.col_offset,
+            ),
+            (
+                _attr_call(node, "uuid", _UUID_ATTRS),
                 "DET004",
-                "Deterministic",
                 f"uuid.{attr}() generates a non-deterministic value",
-            )
-        if _attr_call(node, "os", {"urandom"}):
-            return Violation(
-                filename,
-                node.lineno,
-                node.col_offset,
+            ),
+            (
+                _attr_call(node, "os", {"urandom"}),
                 "DET005",
-                "Deterministic",
                 "os.urandom() generates non-deterministic bytes",
-            )
+            ),
+            (
+                numpy_prefix is not None,
+                "DET006",
+                f"{numpy_prefix}.random.{attr}() produces non-deterministic results unless seeded",
+            ),
+        ]
+        for matched, rule_id, message in matches:
+            if matched:
+                return Violation(
+                    filename,
+                    node.lineno,
+                    node.col_offset,
+                    rule_id,
+                    "Deterministic",
+                    message,
+                )
         return None

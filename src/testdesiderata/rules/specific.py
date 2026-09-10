@@ -4,6 +4,26 @@ from testdesiderata.models import Violation
 from testdesiderata.rules.base import test_functions
 
 _BROAD_EXCEPTIONS = {"Exception", "BaseException"}
+_RAISES_ATTRS = {"raises", "assertRaises"}
+
+
+def _broad_raises_name(node: ast.Call) -> tuple[str, str] | None:
+    assert node is not None, "Call node must not be None"
+    assert isinstance(node, ast.Call), "Node must be an ast.Call"
+    func = node.func
+    if isinstance(func, ast.Attribute) and func.attr in _RAISES_ATTRS:
+        name = func.attr
+    elif isinstance(func, ast.Name) and func.id == "raises":
+        name = func.id
+    else:
+        return None
+    if (
+        node.args
+        and isinstance(node.args[0], ast.Name)
+        and node.args[0].id in _BROAD_EXCEPTIONS
+    ):
+        return name, node.args[0].id
+    return None
 
 
 class SpecificRule:
@@ -24,6 +44,19 @@ class SpecificRule:
                     v = self._check_assert(node, filename)
                     if v:
                         violations.append(v)
+                elif isinstance(node, ast.Call):
+                    if result := _broad_raises_name(node):
+                        name, exc_name = result
+                        violations.append(
+                            Violation(
+                                filename,
+                                node.lineno,
+                                node.col_offset,
+                                "SPC003",
+                                "Specific",
+                                f"{name}({exc_name}) is too broad — use a specific exception type",
+                            )
+                        )
         return violations
 
     def _check_except(self, node: ast.ExceptHandler, filename: str) -> Violation | None:

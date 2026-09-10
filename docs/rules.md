@@ -56,6 +56,16 @@ def test_something():
     token = os.urandom(16)   # DET005
 ```
 
+### DET006 — numpy random
+
+```python
+# bad
+def test_something():
+    x = np.random.randint(0, 10)   # DET006
+```
+
+Detects `numpy.random.*` / `np.random.*` calls (`rand`, `randn`, `randint`, `random`, `choice`, `shuffle`, `sample`, `uniform`, `normal`, `permutation`). Seed the generator or inject fixed values instead.
+
 ---
 
 ## Isolated (ISO)
@@ -114,6 +124,39 @@ def test_something():
 ```
 
 Detects `sqlite3.connect()`, `psycopg2.connect()`, `pymysql.connect()`, `asyncpg.connect()`, `asyncpg.create_pool()`, `create_engine()`, `MongoClient()`. Use in-memory databases or test containers with proper setup/teardown.
+
+### ISO006 — tempfile
+
+```python
+# bad
+def test_something():
+    f = tempfile.NamedTemporaryFile()   # ISO006
+```
+
+Detects `tempfile.mkstemp()`, `mkdtemp()`, `TemporaryFile()`, `NamedTemporaryFile()`, `TemporaryDirectory()`, `SpooledTemporaryFile()`. Use the `tmp_path` fixture instead.
+
+### ISO007 — shutil file operations
+
+```python
+# bad
+def test_something():
+    shutil.copy("a.txt", "b.txt")   # ISO007
+```
+
+Detects `shutil.copy()`, `copy2()`, `copyfile()`, `copytree()`, `move()`, `rmtree()`, `make_archive()`. These mutate the file system outside the test's control — use `tmp_path` instead.
+
+### ISO008 — subprocess / shell
+
+```python
+# bad
+def test_something():
+    subprocess.run(["ls"])   # ISO008
+    os.system("ls")          # ISO008
+```
+
+Detects `subprocess.run()`, `Popen()`, `call()`, `check_call()`, `check_output()`, `os.system()`, `os.popen()`. Spawning a real process ties the test to the host environment.
+
+> `open()` / `.read_text()` / `.write_text()` etc. are **not** flagged when the path is built from the `tmp_path`, `tmp_path_factory`, or `tmpdir` fixtures — that is the isolated pattern these rules recommend.
 
 ---
 
@@ -205,6 +248,29 @@ def test_something(mock_cls):
 
 Detects `@patch`, `@mock.patch`, `@unittest.mock.patch`, `@unittest.mock.object`. Use dependency injection so the real implementation can be swapped without patching.
 
+### BHV003 — mocker.spy
+
+```python
+# bad
+def test_something(mocker):
+    mocker.spy(obj, "method")   # BHV003
+    obj.method()
+    assert obj.method.call_count == 1
+```
+
+Detects `mocker.spy()` (pytest-mock). A spy still lets the test assert on call metadata instead of an outcome — assert on what `method()` returned or changed.
+
+### BHV004 — patch with autospec=False
+
+```python
+# bad
+def test_something():
+    with patch("mymodule.MyClass", autospec=False) as m:   # BHV004
+        ...
+```
+
+Detects an explicit `autospec=False` on `patch()`/`patch.object()`. Without `autospec`, the mock accepts calls the real object would reject, so the test can pass against a signature that no longer exists.
+
 ---
 
 ## Structure-insensitive (STR)
@@ -260,6 +326,22 @@ def test_something():
 ```
 
 When a compound assertion fails, the default message (`assert False`) doesn't say which condition failed. Add a message, or split into separate assertions.
+
+### SPC003 — broad raises assertion
+
+```python
+# bad
+def test_something():
+    with pytest.raises(Exception):        # SPC003
+        do_thing()
+
+# ok
+def test_something():
+    with pytest.raises(ValueError):
+        do_thing()
+```
+
+Detects `pytest.raises(Exception)` / `pytest.raises(BaseException)` and `self.assertRaises(Exception)` / `self.assertRaises(BaseException)`. A test that only checks "something raised" doesn't pin down which failure mode is under test.
 
 ---
 

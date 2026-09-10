@@ -158,6 +158,79 @@ def test_iso005_sqlite3_connect():
     assert "ISO005" in ids
 
 
+def test_iso003_tmp_path_write_text_is_clean():
+    ids = violations_for(
+        IsolatedRule(),
+        """
+        def test_something(tmp_path):
+            (tmp_path / "out.txt").write_text("hello")
+            assert True
+    """,
+    )
+    assert "ISO003" not in ids
+
+
+def test_iso003_open_tmp_path_is_clean():
+    ids = violations_for(
+        IsolatedRule(),
+        """
+        def test_something(tmp_path):
+            with open(tmp_path / "out.txt", "w") as f:
+                f.write("hello")
+    """,
+    )
+    assert "ISO003" not in ids
+
+
+def test_iso006_tempfile_named_temporary_file():
+    ids = violations_for(
+        IsolatedRule(),
+        """
+        import tempfile
+        def test_something():
+            f = tempfile.NamedTemporaryFile()
+            assert f
+    """,
+    )
+    assert "ISO006" in ids
+
+
+def test_iso007_shutil_copy():
+    ids = violations_for(
+        IsolatedRule(),
+        """
+        import shutil
+        def test_something():
+            shutil.copy("a.txt", "b.txt")
+    """,
+    )
+    assert "ISO007" in ids
+
+
+def test_iso008_subprocess_run():
+    ids = violations_for(
+        IsolatedRule(),
+        """
+        import subprocess
+        def test_something():
+            subprocess.run(["ls"])
+    """,
+    )
+    assert "ISO008" in ids
+
+
+def test_iso008_os_system():
+    ids = violations_for(
+        IsolatedRule(),
+        """
+        import os
+        def test_something():
+            os.system("ls")
+    """,
+    )
+    assert "ISO008" in ids
+
+
 def test_iso005_create_engine():
     ids = violations_for(
         IsolatedRule(),
@@ -169,6 +242,32 @@ def test_iso005_create_engine():
     """,
     )
     assert "ISO005" in ids
+
+
+def test_det006_numpy_random_randint():
+    ids = violations_for(
+        DeterministicRule(),
+        """
+        import numpy as np
+        def test_something():
+            x = np.random.randint(0, 10)
+            assert x >= 0
+    """,
+    )
+    assert ids == ["DET006"]
+
+
+def test_det006_numpy_full_name():
+    ids = violations_for(
+        DeterministicRule(),
+        """
+        import numpy
+        def test_something():
+            x = numpy.random.rand()
+            assert x >= 0
+    """,
+    )
+    assert ids == ["DET006"]
 
 
 def test_fst001_sleep():
@@ -274,6 +373,45 @@ def test_bhv002_patch_decorator():
     """,
     )
     assert ids == ["BHV002"]
+
+
+def test_bhv003_mocker_spy():
+    ids = violations_for(
+        BehavioralRule(),
+        """
+        def test_something(mocker, obj):
+            mocker.spy(obj, "method")
+            obj.method()
+            assert obj.method.call_count == 1
+    """,
+    )
+    assert "BHV003" in ids
+
+
+def test_bhv004_patch_autospec_false():
+    ids = violations_for(
+        BehavioralRule(),
+        """
+        from unittest.mock import patch
+        def test_something():
+            with patch("mymodule.MyClass", autospec=False) as m:
+                assert m
+    """,
+    )
+    assert "BHV004" in ids
+
+
+def test_bhv004_patch_autospec_true_is_clean():
+    ids = violations_for(
+        BehavioralRule(),
+        """
+        from unittest.mock import patch
+        def test_something():
+            with patch("mymodule.MyClass", autospec=True) as m:
+                assert m
+    """,
+    )
+    assert "BHV004" not in ids
 
 
 def test_str001_assert_called_with():
@@ -411,6 +549,44 @@ def test_spc002_clean_with_message():
     """,
     )
     assert ids == []
+
+
+def test_spc003_pytest_raises_exception():
+    ids = violations_for(
+        SpecificRule(),
+        """
+        import pytest
+        def test_something():
+            with pytest.raises(Exception):
+                raise ValueError()
+    """,
+    )
+    assert "SPC003" in ids
+
+
+def test_spc003_assert_raises_exception():
+    ids = violations_for(
+        SpecificRule(),
+        """
+        def test_something(self):
+            with self.assertRaises(Exception):
+                raise ValueError()
+    """,
+    )
+    assert "SPC003" in ids
+
+
+def test_spc003_pytest_raises_specific_is_clean():
+    ids = violations_for(
+        SpecificRule(),
+        """
+        import pytest
+        def test_something():
+            with pytest.raises(ValueError):
+                raise ValueError()
+    """,
+    )
+    assert "SPC003" not in ids
 
 
 def test_prd001_skip_in_body():

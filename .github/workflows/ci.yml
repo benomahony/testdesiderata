@@ -30,6 +30,9 @@ jobs:
       - name: Type check with basedpyright
         run: uv run basedpyright
 
+      - name: Lint tests with testdesiderata (dogfood)
+        run: uv run testdesiderata tests/
+
       - name: Run unit tests (parallel)
         run: uv run pytest -m unit -n auto --cov=src/testdesiderata --cov-report=term-missing
 

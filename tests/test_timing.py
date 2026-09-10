@@ -26,9 +26,8 @@ _JUNIT_XML = """\
 
 
 def test_load_junit_timings(tmp_path: Path):
-    xml = tmp_path / "report.xml"
-    _ = xml.write_text(_JUNIT_XML)
-    timings = load_junit_timings(xml)
+    _ = (tmp_path / "report.xml").write_text(_JUNIT_XML)
+    timings = load_junit_timings(tmp_path / "report.xml")
     assert timings["tests.test_foo::test_fast"] == 0.02
     assert timings["tests.test_foo::test_slow"] == 2.50
     assert timings["tests.test_bar::test_medium"] == 0.80

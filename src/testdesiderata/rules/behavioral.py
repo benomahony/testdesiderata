@@ -40,6 +40,45 @@ def _is_patch_decorator(deco: ast.expr) -> bool:
     )
 
 
+def _is_patch_call(node: ast.Call) -> bool:
+    assert node is not None, "Call node must not be None"
+    assert isinstance(node, ast.Call), "Node must be an ast.Call"
+    return _is_patch_decorator(node)
+
+
+def _has_autospec_false(node: ast.Call) -> bool:
+    assert node is not None, "Call node must not be None"
+    assert isinstance(node, ast.Call), "Node must be an ast.Call"
+    return any(
+        kw.arg == "autospec"
+        and isinstance(kw.value, ast.Constant)
+        and kw.value.value is False
+        for kw in node.keywords
+    )
+
+
+def _is_spy_call(node: ast.Call) -> bool:
+    assert node is not None, "Call node must not be None"
+    assert isinstance(node, ast.Call), "Node must be an ast.Call"
+    func = node.func
+    return (
+        isinstance(func, ast.Attribute)
+        and func.attr == "spy"
+        and isinstance(func.value, ast.Name)
+        and func.value.id == "mocker"
+    )
+
+
+def _mock_name(node: ast.Call) -> str | None:
+    assert node is not None, "Call node must not be None"
+    assert isinstance(node, ast.Call), "Node must be an ast.Call"
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    return None
+
+
 class BehavioralRule:
     rule_id: str = "BHV"
     desideratum: str = "Behavioral"
@@ -49,34 +88,67 @@ class BehavioralRule:
         assert filename, "Filename must not be empty"
         violations: list[Violation] = []
         for func in test_functions(tree):
-            for deco in func.decorator_list:
-                if _is_patch_decorator(deco):
-                    violations.append(
-                        Violation(
-                            filename,
-                            deco.lineno,
-                            deco.col_offset,
-                            "BHV002",
-                            "Behavioral",
-                            "@patch couples the test to internal implementation details",
-                        )
-                    )
+            violations.extend(self._check_decorators(func, filename))
             for node in ast.walk(func):
-                if isinstance(node, ast.Call) and _is_mock_creation(node):
-                    if isinstance(node.func, ast.Name):
-                        name = node.func.id
-                    elif isinstance(node.func, ast.Attribute):
-                        name = node.func.attr
-                    else:
-                        continue
-                    violations.append(
-                        Violation(
-                            filename,
-                            node.lineno,
-                            node.col_offset,
-                            "BHV001",
-                            "Behavioral",
-                            f"{name}() substitutes real behavior — tests may miss behavioral regressions",
-                        )
+                if isinstance(node, ast.Call):
+                    violations.extend(self._check_call(node, filename))
+        return violations
+
+    def _check_decorators(
+        self, func: ast.FunctionDef | ast.AsyncFunctionDef, filename: str
+    ) -> list[Violation]:
+        assert func is not None, "Function node must not be None"
+        assert filename, "Filename must not be empty"
+        violations: list[Violation] = []
+        for deco in func.decorator_list:
+            if _is_patch_decorator(deco):
+                violations.append(
+                    Violation(
+                        filename,
+                        deco.lineno,
+                        deco.col_offset,
+                        "BHV002",
+                        "Behavioral",
+                        "@patch couples the test to internal implementation details",
                     )
+                )
+        return violations
+
+    def _check_call(self, node: ast.Call, filename: str) -> list[Violation]:
+        assert node is not None, "Call node must not be None"
+        assert filename, "Filename must not be empty"
+        violations: list[Violation] = []
+        if _is_mock_creation(node) and (name := _mock_name(node)):
+            violations.append(
+                Violation(
+                    filename,
+                    node.lineno,
+                    node.col_offset,
+                    "BHV001",
+                    "Behavioral",
+                    f"{name}() substitutes real behavior — tests may miss behavioral regressions",
+                )
+            )
+        if _is_spy_call(node):
+            violations.append(
+                Violation(
+                    filename,
+                    node.lineno,
+                    node.col_offset,
+                    "BHV003",
+                    "Behavioral",
+                    "mocker.spy() still asserts on call metadata rather than observable behavior",
+                )
+            )
+        if _is_patch_call(node) and _has_autospec_false(node):
+            violations.append(
+                Violation(
+                    filename,
+                    node.lineno,
+                    node.col_offset,
+                    "BHV004",
+                    "Behavioral",
+                    "patch(..., autospec=False) lets the mock accept calls the real object would reject",
+                )
+            )
         return violations

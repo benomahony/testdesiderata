@@ -32,7 +32,7 @@ Skip specific rule prefixes:
 testdesiderata --ignore BHV,STR tests/
 ```
 
-Prefix matching is exact: `--select DET` matches DET001–DET005, not DETAIL.
+Prefix matching is exact: `--select DET` matches DET001–DET006, not DETAIL.
 
 ---
 
