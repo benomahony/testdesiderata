@@ -2,6 +2,7 @@ import ast
 from pathlib import Path
 
 from testdesiderata.models import Rule, Violation
+from testdesiderata.noqa import filter_noqa
 from testdesiderata.rules import ALL_RULES
 
 
@@ -24,11 +25,13 @@ class Linter:
     def lint_file(self, path: Path) -> list[Violation]:
         assert path is not None, "Path must not be None"
         assert path.exists(), f"File does not exist: {path}"
+        source = path.read_text()
         try:
-            tree = ast.parse(path.read_text(), filename=str(path))
+            tree = ast.parse(source, filename=str(path))
         except SyntaxError:
             return []
-        return self.lint_tree(tree, str(path))
+        violations = self.lint_tree(tree, str(path))
+        return filter_noqa(violations, source)
 
     def lint_path(self, path: Path) -> list[Violation]:
         assert path is not None, "Path must not be None"

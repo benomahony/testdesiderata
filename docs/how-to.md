@@ -36,6 +36,25 @@ Prefix matching is exact: `--select DET` matches DET001–DET006, not DETAIL.
 
 ---
 
+## Suppress a single violation
+
+Add a `# noqa` comment on the offending line:
+
+```python
+def test_something():
+    x = random.randint(1, 10)  # noqa: DET001
+    assert x > 0
+```
+
+- `# noqa: DET001` suppresses only that rule on that line.
+- `# noqa: DET` suppresses the whole Deterministic category on that line.
+- A bare `# noqa` suppresses every rule on that line.
+- Multiple codes: `# noqa: DET001, ISO003`.
+
+This only affects the physical line the comment is on — it does not disable a rule file-wide. For that, use `--select`/`--ignore` or the `[tool.testdesiderata]` config above.
+
+---
+
 ## Run in CI (GitHub Actions)
 
 ```yaml

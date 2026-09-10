@@ -42,6 +42,15 @@ ignore = ["BHV"]
 
 CLI flags override config. Config is found by walking up from the working directory.
 
+Suppress a single violation inline:
+
+```python
+def test_something():
+    x = random.randint(1, 10)  # noqa: DET001
+```
+
+`# noqa` (bare) suppresses everything on the line; `# noqa: DET` suppresses a whole prefix.
+
 ## Rules
 
 | Prefix | Desideratum | What it catches |

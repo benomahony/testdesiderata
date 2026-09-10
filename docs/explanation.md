@@ -49,7 +49,7 @@ Static analysis has limits. These problems require human judgment or AI review:
 
 ## Design choices
 
-**Prefixes, not individual rule IDs for filtering.** `--select DET` enables all five deterministic rules at once. Individual rule suppression (like `# noqa: DET001`) is intentionally not supported — suppressing a violation inline hides the problem from the next reader.
+**Prefixes for bulk filtering, `# noqa` for one-off exceptions.** `--select DET` / `--ignore DET` turn a whole desideratum on or off at the CLI or config level — the tool for "we don't track this category here." `# noqa: DET001` (or a bare `# noqa`, or a prefix like `# noqa: DET`) suppresses a specific violation on the line it's written on — the tool for "this one line is a deliberate, reviewed exception." Both are visible in code review; neither is a way to silently disable a rule for a whole file.
 
 **No configuration of thresholds.** The limits in CMP001 (10 assertions) and CMP002 (50 lines) are not configurable. If your codebase consistently needs higher limits, that is a signal to look at the tests themselves.
 
