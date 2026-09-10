@@ -1,6 +1,6 @@
 [project]
 name = "testdesiderata"
-version = "0.1.1"
+version = "0.1.2"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -47,7 +47,7 @@ known_first_party = ["testdesiderata"]
 per_rule_ignores = {"DEP003" = ["mcp"]}
 
 [tool.bumpversion]
-current_version = "0.1.1"
+current_version = "0.1.2"
 commit = true
 tag = true
 tag_name = "v{new_version}"
